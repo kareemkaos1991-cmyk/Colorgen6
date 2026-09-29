@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<title>AIRIA COLOR GENERATOR — Honkai Impact 3rd Style</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg-dark:#0a0a0f;--bg-card:#12121a;--bg-input:#1a1a25;
+  --neon-pink:#ff2a6d;--neon-pink-glow:#ff2a6d40;--neon-cyan:#05d9e8;--neon-cyan-glow:#05d9e840;
+  --neon-purple:#d300c5;--text-primary:#e0e0e0;--text-secondary:#a0a0b0;--text-muted:#606070;
+  --border-color:#2a2a3a;--success:#00ff88;--warning:#ffaa00;--danger:#ff4444;
+}
+@keyframes fade-in{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slide-in{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:translateX(0)}}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;background:var(--bg-dark);color:var(--text-primary);min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg,rgba(255,42,109,0.03)1px,transparent 1px),linear-gradient(rgba(255,42,109,0.03)1px,transparent 1px);background-size:50px 50px;pointer-events:none;z-index:0}
+.container{max-width:1600px;margin:0 auto;padding:12px;padding-bottom:calc(16px + env(safe-area-inset-bottom));position:relative;z-index:1}
+.header{text-align:center;padding:30px 0 20px;animation:fade-in 0.8s ease}
+.header h1{font-size:clamp(1.5rem,5vw,2.5rem);font-weight:700;color:var(--neon-pink);letter-spacing:2px;text-shadow:0 0 20px var(--neon-pink-glow),0 0 40px var(--neon-pink-glow)}
+.header .subtitle{color:var(--text-secondary);font-size:0.85rem;margin-top:8px;letter-spacing:2px;text-transform:uppercase}
+.header .divider{width:200px;height:2px;background:linear-gradient(90deg,transparent,var(--neon-pink),var(--neon-cyan),transparent);margin:15px auto}
+.main-grid{display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:20px;margin-top:15px}
+@media(max-width:1200px){.main-grid{grid-template-columns:1fr 1fr}.main-grid .right-panel{grid-column:1/-1}}
+@media(max-width:900px){.main-grid{grid-template-columns:1fr}}
+.card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:20px;animation:fade-in 0.6s ease;transition:border-color 0.3s,box-shadow 0.3s}
+.card:hover{border-color:var(--neon-pink);box-shadow:0 0 15px var(--neon-pink-glow)}
+.card-title{font-size:1rem;font-weight:600;color:var(--neon-pink);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.input-label{display:block;color:var(--text-secondary);font-size:0.8rem;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
+.color-input-wrapper{display:flex;gap:8px;align-items:center}
+input[type="text"]{flex:1;background:var(--bg-input);border:1px solid var(--border-color);border-radius:8px;padding:12px 14px;color:var(--text-primary);font-size:1rem;font-family:'Courier New',monospace;transition:border-color 0.3s,box-shadow 0.3s;-webkit-appearance:none;appearance:none}
+input[type="text"]:focus{outline:none;border-color:var(--neon-pink);box-shadow:0 0 10px var(--neon-pink-glow)}
+.tool-btn{background:var(--bg-input);border:1px solid var(--border-color);border-radius:8px;padding:10px 12px;color:var(--neon-cyan);cursor:pointer;transition:all 0.3s;font-size:1rem;display:flex;align-items:center;justify-content:center;min-width:44px;min-height:44px}
+.tool-btn:hover{border-color:var(--neon-cyan);background:rgba(5,217,232,0.1)}
+.tool-btn:active{transform:scale(0.95)}
+.picker-container{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.picker-row{display:flex;gap:12px;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+.sv-box-container{position:relative;width:min(200px,60vw);height:min(200px,60vw);border-radius:8px;overflow:hidden;border:2px solid var(--neon-pink);cursor:crosshair;touch-action:none}
+#svCanvas{width:100%;height:100%;display:block}
+.hue-slider-container{position:relative;width:30px;height:min(200px,60vw);border-radius:15px;overflow:hidden;border:2px solid var(--neon-cyan);cursor:ns-resize;touch-action:none}
+#hueCanvas{width:100%;height:100%;display:block}
+.hue-indicator{position:absolute;left:0;width:100%;height:4px;background:white;border:1px solid black;pointer-events:none;border-radius:2px}
+.sv-indicator{position:absolute;width:14px;height:14px;border:2px solid white;border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);box-shadow:0 0 5px rgba(0,0,0,0.5)}
+.base-preview-box{width:56px;height:56px;border-radius:10px;border:2px solid var(--neon-pink);box-shadow:0 0 15px var(--neon-pink-glow);transition:all 0.1s}
+.picker-info{display:flex;flex-direction:column;gap:6px;justify-content:center}
+.picker-info .hsv-text{font-size:0.75rem;color:var(--text-muted);font-family:'Courier New',monospace}
+.toggle-switch{display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:10px;background:var(--bg-input);border-radius:8px;border:1px solid var(--border-color);cursor:pointer;transition:all 0.3s}
+.toggle-switch:hover{border-color:var(--neon-cyan)}
+.toggle-switch input[type="checkbox"]{width:44px;height:24px;appearance:none;-webkit-appearance:none;background:var(--border-color);border-radius:12px;position:relative;cursor:pointer;transition:background 0.3s;flex-shrink:0}
+.toggle-switch input[type="checkbox"]::after{content:'';position:absolute;width:20px;height:20px;background:white;border-radius:50%;top:2px;left:2px;transition:transform 0.3s}
+.toggle-switch input[type="checkbox"]:checked{background:var(--neon-pink)}
+.toggle-switch input[type="checkbox"]:checked::after{transform:translateX(20px)}
+.toggle-switch label{cursor:pointer;color:var(--text-secondary);font-size:0.85rem;font-weight:600}
+.toggle-switch .toggle-desc{font-size:0.7rem;color:var(--text-muted);margin-left:auto}
+.material-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.material-option{position:relative;padding:12px;background:var(--bg-input);border:2px solid var(--border-color);border-radius:10px;cursor:pointer;transition:all 0.3s;text-align:center}
+.material-option:hover{border-color:var(--neon-cyan);background:rgba(5,217,232,0.05)}
+.material-option.selected{border-color:var(--neon-pink);background:rgba(255,42,109,0.1);box-shadow:0 0 15px var(--neon-pink-glow)}
+.material-option .material-icon{font-size:1.6rem;margin-bottom:4px}
+.material-option .material-name{font-size:0.8rem;font-weight:600;color:var(--text-primary)}
+.save-palette-btn{width:100%;padding:12px;margin-top:8px;background:linear-gradient(135deg,var(--neon-pink),var(--neon-purple));border:none;border-radius:10px;color:white;font-size:0.95rem;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:2px;transition:all 0.3s;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-appearance:none;appearance:none}
+.save-palette-btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(255,42,109,0.4)}
+.save-palette-btn:active{transform:translateY(0)}
+.template-box{border:1px solid var(--border-color);border-radius:10px;max-height:min(38vh,320px);overflow-y:auto;padding:8px;background:var(--bg-input);scrollbar-width:thin;scrollbar-color:var(--neon-pink) var(--bg-input)}
+.template-box::-webkit-scrollbar{width:5px}
+.template-box::-webkit-scrollbar-thumb{background:var(--neon-pink);border-radius:3px}
+.template-cat{position:sticky;top:-8px;background:var(--bg-input);font-size:0.72rem;color:var(--neon-cyan);padding:8px 0 6px;font-weight:600;letter-spacing:1px;text-transform:uppercase;z-index:1}
+.template-grid{display:grid;grid-template-columns:repeat(auto-fill,48px);gap:6px;padding-bottom:6px}
+.template-swatch{width:48px;cursor:pointer}
+.template-swatch .sw{width:48px;height:48px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);position:relative;transition:transform 0.2s}
+.template-swatch .sw:hover{transform:scale(1.08);border-color:var(--neon-cyan);z-index:2}
+.template-swatch .sw span{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:0.55rem;color:white;text-shadow:0 1px 3px black;white-space:nowrap;pointer-events:none}
+.harmony-section{margin-top:12px;border:1px solid var(--border-color);border-radius:10px;overflow:hidden}
+.harmony-header{display:flex;align-items:center;padding:10px 12px;font-size:0.85rem;cursor:pointer;color:var(--text-secondary)}
+.harmony-header b{color:var(--neon-pink);font-weight:600}
+.harmony-header .arr{margin-left:auto;font-size:0.7rem;color:var(--neon-cyan);transition:transform 0.3s}
+.harmony-section.open .harmony-header .arr{transform:rotate(180deg)}
+.harmony-body{display:none;padding:0 12px 12px}
+.harmony-section.open .harmony-body{display:block}
+.harmony-modes{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.harmony-modes button{border:1px solid var(--border-color);background:var(--bg-input);color:var(--text-secondary);border-radius:14px;padding:5px 12px;font-size:0.72rem;cursor:pointer;transition:all 0.3s}
+.harmony-modes button.on{border-color:var(--neon-pink);background:rgba(255,42,109,0.15);color:var(--neon-pink)}
+.harmony-swatches{display:flex;gap:5px}
+.harmony-swatches div{flex:1;height:32px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);cursor:pointer;transition:transform 0.2s}
+.harmony-swatches div:hover{transform:scale(1.06)}
+.preview-wrap{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+#sphereCanvas{width:128px;height:128px;border-radius:50%;flex-shrink:0;display:block}
+.base-hex{font-family:'Courier New',monospace;font-size:1.05rem;font-weight:700;color:var(--neon-pink)}
+.base-meta{font-size:0.75rem;color:var(--text-secondary);margin-top:2px}
+.correction-badge{display:inline-block;font-size:0.62rem;padding:3px 9px;border-radius:9px;margin-top:5px;background:rgba(0,255,136,0.12);color:var(--success);font-weight:600}
+.anrow{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:0.72rem;flex-wrap:wrap}
+.anrow .chipc{width:22px;height:22px;border-radius:6px;border:1px solid var(--border-color)}
+.anrow .arrow{color:var(--text-muted)}
+.section-header{display:flex;align-items:center;gap:8px;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border-color)}
+.section-header h3{font-size:0.9rem;color:var(--text-primary);font-weight:600}
+.section-header .badge-tag{font-size:0.6rem;font-weight:700;padding:2px 8px;border-radius:9px;text-transform:uppercase;letter-spacing:1px}
+.tag-shadow{background:var(--neon-pink);color:#fff}
+.tag-light{background:var(--neon-cyan);color:#04202a}
+.tag-fx{background:var(--neon-purple);color:#fff}
+.tag-outline{background:var(--success);color:#04220f}
+.section-header .copyall{margin-left:auto;font-size:0.62rem;padding:4px 10px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-input);color:var(--neon-cyan);cursor:pointer}
+.section-header .copyall:hover{border-color:var(--neon-cyan)}
+.color-grid{display:flex;gap:8px;flex-wrap:wrap}
+.color-swatch{background:var(--bg-input);border:1px solid var(--border-color);border-radius:10px;overflow:hidden;transition:all 0.3s;cursor:pointer;width:76px;animation:slide-in 0.4s ease;position:relative}
+.color-swatch:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(0,0,0,0.3);border-color:var(--neon-pink)}
+.color-display{height:36px;position:relative}
+.color-info{padding:4px 6px}
+.color-name{font-size:0.68rem;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.color-hex{font-family:'Courier New',monospace;font-size:0.65rem;color:var(--neon-cyan)}
+.hist-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.hist-chip{width:24px;height:24px;border-radius:6px;border:1px solid var(--border-color);cursor:pointer;transition:transform 0.2s}
+.hist-chip:hover{transform:scale(1.15)}
+.tips-section{background:linear-gradient(135deg,rgba(255,42,109,0.05),rgba(5,217,232,0.05));border:1px solid var(--border-color);border-radius:12px;padding:16px}
+.tips-title{font-size:0.9rem;color:var(--neon-cyan);font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.tips-material{font-size:0.85rem;font-weight:600;color:var(--neon-pink);margin-bottom:10px}
+.tips-list{list-style:none}
+.tips-list li{padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:flex-start;gap:8px;animation:slide-in 0.3s ease;animation-fill-mode:both}
+.tips-list li:last-child{border-bottom:none}
+.tips-list .tip-number{background:linear-gradient(135deg,var(--neon-pink),var(--neon-purple));color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;flex-shrink:0;margin-top:2px}
+.tips-list .tip-text{color:var(--text-secondary);font-size:0.8rem;line-height:1.4}
+.saved-section{margin-top:16px;padding-top:16px;border-top:2px solid var(--border-color)}
+.saved-section-title{font-size:0.9rem;color:var(--neon-pink);font-weight:600;margin-bottom:10px}
+.saved-list{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.saved-item{background:var(--bg-input);border:1px solid var(--border-color);border-radius:10px;padding:12px;transition:all 0.3s;position:relative}
+.saved-item:hover{border-color:var(--neon-cyan)}
+.saved-item-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.saved-item-checkbox{width:18px;height:18px;accent-color:var(--neon-pink);cursor:pointer;flex-shrink:0}
+.saved-item-color{width:28px;height:28px;border-radius:6px;border:2px solid var(--neon-pink);flex-shrink:0;box-shadow:0 0 6px var(--neon-pink-glow)}
+.saved-item-info-wrapper{flex:1;min-width:0}
+.saved-item-name-input{width:100%;background:transparent;border:1px solid transparent;border-radius:4px;padding:3px 5px;color:var(--text-primary);font-size:0.8rem;font-family:inherit;transition:all 0.3s}
+.saved-item-name-input:focus{outline:none;border-color:var(--neon-pink);background:rgba(255,42,109,0.1)}
+.saved-item-meta{font-size:0.65rem;color:var(--text-muted);margin-top:1px}
+.saved-item-count{font-size:0.65rem;color:var(--neon-cyan);font-weight:600}
+.saved-item-delete{position:absolute;top:6px;right:6px;background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:0.85rem;transition:color 0.3s;padding:2px 5px;border-radius:4px}
+.saved-item-delete:hover{color:var(--danger);background:rgba(255,68,68,0.1)}
+.saved-item-expand{display:flex;align-items:center;gap:5px;margin-top:6px;padding-top:6px;border-top:1px solid var(--border-color);cursor:pointer;color:var(--neon-cyan);font-size:0.7rem;transition:color 0.3s}
+.saved-item-expand:hover{color:var(--neon-pink)}
+.saved-item-expand .expand-icon{transition:transform 0.3s}
+.saved-item-expand.expanded .expand-icon{transform:rotate(180deg)}
+.saved-derivatives{display:none;flex-direction:column;gap:5px;margin-top:6px;padding:6px;background:rgba(0,0,0,0.2);border-radius:6px}
+.saved-derivatives.show{display:flex}
+.saved-derivative-row{display:flex;align-items:center;gap:6px;padding:3px 5px;border-radius:4px;transition:background 0.2s}
+.saved-derivative-row:hover{background:rgba(255,255,255,0.05)}
+.saved-derivative-color{width:18px;height:18px;border-radius:4px;border:1px solid var(--border-color);flex-shrink:0}
+.saved-derivative-name{font-size:0.7rem;color:var(--text-secondary);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.saved-derivative-hex{font-size:0.65rem;color:var(--neon-cyan);font-family:'Courier New',monospace;flex-shrink:0;cursor:pointer}
+.saved-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.saved-actions button{padding:8px 14px;border-radius:8px;border:none;cursor:pointer;font-size:0.8rem;font-weight:600;transition:all 0.3s;-webkit-appearance:none;appearance:none}
+.btn-export-selected{background:linear-gradient(135deg,var(--neon-pink),var(--neon-purple));color:white}
+.btn-export-all{background:var(--bg-input);border:1px solid var(--neon-cyan);color:var(--neon-cyan)}
+.btn-export-aco{background:var(--bg-input);border:1px solid var(--neon-purple);color:#e080ff}
+.btn-clear{background:var(--bg-input);border:1px solid var(--danger);color:var(--danger)}
+.empty-saved{text-align:center;padding:16px;color:var(--text-muted);font-size:0.8rem}
+.fab-container{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));right:calc(20px + env(safe-area-inset-right));z-index:950;display:flex;flex-direction:column;gap:10px}
+.fab-btn{height:50px;border-radius:25px;border:none;cursor:pointer;padding:0 20px;font-size:0.8rem;font-weight:700;letter-spacing:1.5px;color:#fff;display:flex;align-items:center;gap:8px;box-shadow:0 8px 25px rgba(0,0,0,0.5);transition:all 0.3s;-webkit-appearance:none;appearance:none;text-transform:uppercase}
+.fab-save{background:linear-gradient(135deg,var(--neon-pink),var(--neon-purple))}
+.fab-btn:hover{transform:translateY(-3px) scale(1.03)}
+.fab-btn:active{transform:translateY(0) scale(0.97)}
+.footer{text-align:center;padding:30px 0 16px;color:var(--text-muted);font-size:0.75rem}
+.footer .neon-text{color:var(--neon-pink);font-weight:600}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:calc(20px + env(safe-area-inset-left));background:var(--bg-card);border:1px solid var(--neon-pink);border-radius:10px;padding:12px 20px;color:var(--text-primary);font-weight:600;box-shadow:0 10px 30px rgba(255,42,109,0.3);transform:translateX(-150%);transition:transform 0.3s ease;z-index:1000;font-size:0.85rem}
+.toast.show{transform:translateX(0)}
+.bottom-sheet{position:fixed;inset:0;background:rgba(5,5,10,0.65);display:none;align-items:flex-end;z-index:9998;backdrop-filter:blur(3px)}
+.bottom-sheet.active{display:flex}
+.sheet-content{background:var(--bg-card);border:1px solid var(--neon-pink);border-radius:16px 16px 0 0;padding:20px;width:100%;max-width:640px;margin:0 auto;max-height:80vh;overflow-y:auto;animation:fade-in 0.25s ease}
+@media(min-width:768px){.bottom-sheet{align-items:center;justify-content:center}.sheet-content{border-radius:16px;max-width:420px}}
+.sheet-content h3{font-size:0.95rem;color:var(--neon-pink);margin-bottom:6px}
+.sheet-content .s-desc{color:var(--text-secondary);font-size:0.8rem;line-height:1.5;margin-bottom:4px}
+.sheet-content .s-tech{color:var(--text-secondary);font-size:0.75rem;border-top:1px solid var(--border-color);padding-top:8px;margin-top:8px}
+.sheet-content .s-tech b{color:var(--neon-cyan)}
+.sheet-content .sheet-row{display:flex;gap:8px;align-items:center;margin-top:14px}
+.sheet-content .sheet-hex{font-family:'Courier New',monospace;font-weight:700;color:var(--neon-cyan);font-size:1rem}
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;display:none;align-items:center;justify-content:center;backdrop-filter:blur(5px)}
+.modal.active{display:flex}
+.modal-content{background:var(--bg-card);border:2px solid var(--neon-pink);border-radius:16px;padding:24px;max-width:90vw;width:320px;text-align:center;animation:fade-in 0.3s ease}
+.modal-content h3{color:var(--neon-pink);margin-bottom:12px;font-size:1.1rem}
+.modal-content .hex-display{background:var(--bg-input);border:1px solid var(--border-color);border-radius:8px;padding:12px;font-family:'Courier New',monospace;font-size:1.2rem;color:var(--neon-cyan);margin-bottom:16px;word-break:break-all}
+.modal-content .copy-instructions{color:var(--text-secondary);font-size:0.85rem;margin-bottom:16px;line-height:1.5}
+.modal-content .modal-btn{background:linear-gradient(135deg,var(--neon-pink),var(--neon-purple));border:none;border-radius:8px;padding:10px 24px;color:white;font-weight:600;cursor:pointer;font-size:0.9rem;-webkit-appearance:none;appearance:none}
+.image-pick-modal .modal-content{width:min(92vw,560px)}
+#imagePickCanvas{max-width:100%;border-radius:8px;border:1px solid var(--border-color);display:none;cursor:crosshair;touch-action:none}
+@media(max-width:600px){
+  .header h1{font-size:1.6rem}.card{padding:14px}
+  .template-grid{grid-template-columns:repeat(auto-fill,48px)}
+  .container{padding:8px}
+  .saved-actions button{padding:6px 10px;font-size:0.75rem}
+  .fab-btn{height:44px;padding:0 14px;font-size:0.7rem}
+}
+@media(max-width:480px){
+  .picker-row{gap:10px}
+  .sv-box-container{width:min(150px,44vw);height:min(150px,44vw)}
+  .hue-slider-container{height:min(150px,44vw)}
+  .base-preview-box{width:44px;height:44px}
+  #sphereCanvas{width:96px;height:96px}
+}
+
+.balloon{position:fixed;background:rgba(10,10,15,0.96);border:1px solid var(--neon-pink);border-radius:10px;padding:10px 12px;max-width:280px;z-index:9990;display:none;box-shadow:0 10px 30px rgba(255,42,109,0.25);backdrop-filter:blur(8px);font-size:0.75rem;line-height:1.4}
+.balloon .b-title{color:var(--neon-pink);font-weight:700;font-size:0.8rem;margin-bottom:3px}
+.balloon .b-desc{color:var(--text-secondary);margin-bottom:4px}
+.balloon .b-tech{color:var(--text-muted);border-top:1px solid var(--border-color);padding-top:4px;margin-top:4px;font-size:0.68rem}
+.balloon .b-tech b{color:var(--neon-cyan)}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1>&#10022; AIRIA COLOR GENERATOR &#10022;</h1>
+<div class="subtitle">Honkai Impact 3rd Official Art Style</div>
+<div class="divider"></div>
+</div>
+
+<div class="main-grid">
+<div class="left-panel">
+<div class="card">
+<div class="card-title"><span>&#127912;</span> Base Color</div>
+
+<div class="picker-container">
+<div class="picker-row">
+<div class="sv-box-container" id="svBoxContainer">
+<canvas id="svCanvas" width="200" height="200"></canvas>
+<div class="sv-indicator" id="svIndicator"></div>
+</div>
+<div class="hue-slider-container" id="hueSliderContainer">
+<canvas id="hueCanvas" width="30" height="200"></canvas>
+<div class="hue-indicator" id="hueIndicator"></div>
+</div>
+<div class="picker-info">
+<div class="base-preview-box" id="basePreviewBox"></div>
+<div class="hsv-text" id="hsvDisplay">H:25 S:12% V:99%</div>
+</div>
+</div>
+</div>
+
+<div class="input-group">
+<label class="input-label">Hex Code</label>
+<div class="color-input-wrapper">
+<input type="text" id="hexInput" value="#FCE8DF" placeholder="#FF6B6B" maxlength="7">
+<button class="tool-btn" id="eyedropperBtn" title="Pick color from screen (Chrome/Edge) or image">&#9673;</button>
+<button class="tool-btn" id="pasteBtn" title="Paste from clipboard">&#128203;</button>
+</div>
+</div>
+
+<div class="harmony-section open" id="harmonySection">
+<div class="harmony-header" id="harmonyHeader"><b>Color Harmony</b><span class="arr">&#9660;</span></div>
+<div class="harmony-body">
+<div class="harmony-modes" id="harmonyModes">
+<button data-harmony="analogous" class="on">analogous</button>
+<button data-harmony="complementary">complementary</button>
+<button data-harmony="triadic">triadic</button>
+<button data-harmony="monochromatic">monochrome</button>
+</div>
+<div class="harmony-swatches" id="harmonySwatches"></div>
+<div class="meta" style="margin-top:5px;font-size:0.68rem;color:var(--text-muted)">click = copy · double-click = set as base</div>
+</div>
+</div>
+
+<div class="lbl" style="margin:14px 0 8px;color:var(--neon-pink);font-weight:600;font-size:0.85rem;">Material Type</div>
+<div class="material-grid" id="materialGrid">
+<div class="material-option selected" data-material="skin">
+<div class="material-icon">&#128100;</div>
+<div class="material-name">Skin</div>
+</div>
+<div class="material-option" data-material="hair">
+<div class="material-icon">&#128135;</div>
+<div class="material-name">Hair</div>
+</div>
+<div class="material-option" data-material="clothes">
+<div class="material-icon">&#128085;</div>
+<div class="material-name">Clothes</div>
+</div>
+<div class="material-option" data-material="armor">
+<div class="material-icon">&#128737;</div>
+<div class="material-name">Armor</div>
+</div>
+</div>
+
+<div class="toggle-switch" id="corrToggle">
+<input type="checkbox" id="corrCheck">
+<label for="corrCheck">Auto-correct base color</label>
+<span class="toggle-desc">default off</span>
+</div>
+<div class="toggle-switch" id="rimLockToggle">
+<input type="checkbox" id="rimLockCheck">
+<label for="rimLockCheck">Lock cyan rim (iconic)</label>
+</div>
+<div class="toggle-switch" id="accentToggle">
+<input type="checkbox" id="accentCheck" checked>
+<label for="accentCheck">Accent suggestion</label>
+<span class="toggle-desc">replaces focal mode</span>
+</div>
+
+<button class="save-palette-btn" id="savePaletteBtn"><span>&#128190;</span> SAVE PALETTE</button>
+
+<div style="margin-top:16px;">
+<div class="input-label">Honkai Templates</div>
+<div class="template-box" id="templateBox"></div>
+</div>
+
+
+</div>
+</div>
+
+<div class="center-panel">
+<div class="card">
+<div class="card-title"><span>&#127919;</span> Base Color Analysis</div>
+<div class="preview-wrap">
+<canvas id="sphereCanvas" width="256" height="256"></canvas>
+<div>
+<div class="base-hex" id="baseHex">#FCE8DF</div>
+<div class="base-meta" id="baseMeta">warm · skin material</div>
+<span class="correction-badge" id="corrBadge">correction off (default)</span>
+<div class="anrow">
+original <div class="chipc" id="anOrig"></div>
+<span class="arrow">&rarr;</span>
+used <div class="chipc" id="anFix"></div>
+</div>
+<div class="base-meta" id="ballCaption" style="margin-top:6px">cel-shading preview — every generated color on one sphere</div>
+<div class="base-meta">tap any swatch for tooltip (Bahasa)</div>
+</div>
+</div>
+
+<div class="section-header">
+<h3>Shadow</h3><span class="badge-tag tag-shadow">MULTIPLY</span>
+<button class="copyall" data-group="shadow">copy all</button>
+</div>
+<div class="color-grid" id="gridShadow"></div>
+
+<div class="section-header">
+<h3>Light</h3><span class="badge-tag tag-light">ADD</span>
+<button class="copyall" data-group="light">copy all</button>
+</div>
+<div class="color-grid" id="gridLight"></div>
+
+<div class="section-header">
+<h3>Material FX</h3><span class="badge-tag tag-fx">FX</span>
+<button class="copyall" data-group="fx">copy all</button>
+</div>
+<div class="color-grid" id="gridFx"></div>
+
+<div class="section-header">
+<h3>Outline</h3><span class="badge-tag tag-outline">EDGE</span>
+<button class="copyall" data-group="outline">copy all</button>
+</div>
+<div class="color-grid" id="gridOutline"></div>
+
+<div id="accentWrap">
+<div class="section-header">
+<h3>Accent Suggestion</h3><span class="badge-tag tag-fx">ACCENT</span>
+</div>
+<div class="color-grid" id="gridAccent"></div>
+</div>
+
+<div class="section-header">
+<h3>Palette History</h3><span class="badge-tag tag-light">AUTO</span>
+</div>
+<div class="hist-row" id="histRow"></div>
+</div>
+</div>
+
+<div class="right-panel">
+<div class="card">
+<div class="tips-title"><span>&#128161;</span> Material Tips</div>
+<div class="tips-material" id="tipsMaterialName">Skin</div>
+<ul class="tips-list" id="tipsList"></ul>
+</div>
+
+<div class="card saved-section" id="savedSection" style="display:none">
+<div class="saved-section-title"><span>&#128190;</span> Saved Palettes</div>
+<div class="saved-list" id="savedList"></div>
+<div class="saved-actions">
+<button class="btn-export-selected" id="exportSelectedBtn">&#128190; Export PNG</button>
+<button class="btn-export-all" id="exportAllBtn">&#128190; Export All</button>
+<button class="btn-export-aco" id="exportAcoBtn">&#127912; Export .aco (CSP)</button>
+<button class="btn-clear" id="clearSavedBtn">&#128465; Clear All</button>
+</div>
+</div>
+</div>
+</div>
+
+<div class="fab-container">
+<button class="fab-btn fab-save" id="fabSave" title="Save palette">&#128190; SAVE</button>
+</div>
+
+<div class="footer">
+<p>AIRIA COLOR GENERATOR | <span class="neon-text">A I R I A concept</span> | Honkai Impact 3rd Style</p>
+</div>
+</div>
+
+<div class="balloon" id="balloon"></div>
+
+<div class="bottom-sheet" id="tooltipSheet">
+<div class="sheet-content">
+<h3 id="sheetTitle">Color</h3>
+<div class="s-desc" id="sheetDesc"></div>
+<div class="s-tech" id="sheetTech"></div>
+<div class="s-tech" id="sheetArea"></div>
+<div class="sheet-row">
+<span class="sheet-hex" id="sheetHex">#FFFFFF</span>
+<button class="modal-btn" id="sheetCopy" style="padding:8px 18px;font-size:0.8rem;">copy hex</button>
+<button class="modal-btn" id="sheetClose" style="padding:8px 18px;font-size:0.8rem;margin-left:auto;background:var(--bg-input);border:1px solid var(--border-color);">close</button>
+</div>
+</div>
+</div>
+
+<div class="toast" id="toast">Color copied!</div>
+
+<div class="modal" id="mobileCopyModal">
+<div class="modal-content">
+<h3>&#128203; Copy Color</h3>
+<div class="hex-display" id="mobileHexDisplay">#FFFFFF</div>
+<div class="copy-instructions">
+Press and hold the hex code above, then choose "Copy".<br>
+Or note this color for later use.
+</div>
+<button class="modal-btn" id="closeModalBtn">Close</button>
+</div>
+</div>
+
+<div class="modal image-pick-modal" id="imagePickModal">
+<div class="modal-content">
+<h3>&#128433; Pick Color from Image</h3>
+<canvas id="imagePickCanvas"></canvas>
+<p style="color:var(--text-muted);font-size:0.75rem;margin:10px 0;line-height:1.4">Choose an image from your device, then tap the desired color.<br>The color will be used as the base color.</p>
+<input type="file" id="imagePickInput" accept="image/*" style="display:none">
+<div style="display:flex;gap:8px;justify-content:center">
+<button class="modal-btn" id="chooseImageBtn">Choose Image</button>
+<button class="modal-btn" id="closeImageModalBtn" style="background:var(--bg-input);border:1px solid var(--border-color);color:var(--text-secondary)">Close</button>
+</div>
+</div>
+</div>
+
+<script>
+
+// ============================================================
+// AIRIA v6 — COLOR ENGINE (validated calibration)
+// shadow: validated per-material tables, direction-aware
+// (warm H<=60|H>=300 -> down, cool 120-300 -> up to violet, neutral 60-120 -> down x1.0)
+// highlight: zoned (toward 60 deg; 170-300 drift +6/+12 to violet; red/magenta 300-360|0 -> -12/-20)
+// rim: desaturated complement (H+180,S45,V92) + lock-cyan option
+// reflection: H200 S62 adaptive V (armor)
+// correction: adaptive lerp 0.65 x (V/100), gate <=12, trusted template <25, skin boost +3, DEFAULT OFF
+// ============================================================
+const TGT={skin:[34,96],hair:[75,92],clothes:[58,85],armor:[45,82]};
+const SH={ // shadow: [hue mag t1/t2/t3], [S+], [V x]
+ skin:{mag:[8,14,20],sS:[12,16,20],sV:[.88,.78,.68]},
+ hair:{mag:[15,25,35],sS:[12,18,22],sV:[.82,.66,.50]},
+ clothes:{mag:[12,20,27],sS:[8,14,18],sV:[.84,.68,.54]},
+ armor:{mag:[10,16,22],sS:[8,12,16],sV:[.80,.60,.42]}};
+const HIF={skin:[.35,.60],hair:[.50,.75],clothes:[.40,.65],armor:[.55,.80]};
+const HIS={skin:[10,20],hair:[18,30],clothes:[15,25],armor:[20,32]};
+const HIB={skin:[4,8],hair:[5,10],clothes:[4,8],armor:[6,12]};
+const GROUPS={shadow:['shadow_medium','shadow_deep','shadow_core','cast_shadow','ao'],
+ light:['highlight','specular','bounce','strand_light'],
+ fx:['subsurface','blush','inner_shadow','fold_shadow','edge_highlight','scratches','reflection'],
+ outline:['rim_light','lineart']};
+
+function hexToHsv(hex){
+ hex=hex.replace('#','');
+ const r=parseInt(hex.substring(0,2),16)/255,g=parseInt(hex.substring(2,4),16)/255,b=parseInt(hex.substring(4,6),16)/255;
+ const max=Math.max(r,g,b),min=Math.min(r,g,b),diff=max-min;
+ let h=0;
+ if(diff!==0){if(max===r)h=((g-b)/diff)%6;else if(max===g)h=(b-r)/diff+2;else h=(r-g)/diff+4;}
+ h=Math.round(h*60);if(h<0)h+=360;
+ return{h,s:max===0?0:Math.round((diff/max)*100),v:Math.round(max*100)};
+}
+function hsvToHex(h,s,v){
+ h=((h%360)+360)%360;s=Math.max(0,Math.min(100,s))/100;v=Math.max(0,Math.min(100,v))/100;
+ const c=v*s,x=c*(1-Math.abs((h/60)%2-1)),m=v-c;let r,g,b;
+ if(h<60){r=c;g=x;b=0}else if(h<120){r=x;g=c;b=0}else if(h<180){r=0;g=c;b=x}
+ else if(h<240){r=0;g=x;b=c}else if(h<300){r=x;g=0;b=c}else{r=c;g=0;b=x}
+ const t=n=>Math.round((n+m)*255).toString(16).padStart(2,'0');
+ return('#'+t(r)+t(g)+t(b)).toUpperCase();
+}
+function v5temp(h){h=((h%360)+360)%360;if(h<=60||h>=300)return'warm';if(h>=120&&h<=300)return'cool';return'neutral';}
+function shadowDir(h){const t=v5temp(h);return t==='warm'?{dir:-1,mult:1.3}:t==='cool'?{dir:1,mult:1.3}:{dir:-1,mult:1.0};}
+function hlHue(h,i,mat){
+ const f=HIF[mat][i],mag=[12,20][i],dr=[6,12][i];
+ if(h>170&&h<300)return h+dr;
+ if(h>=300||h<=0){const nh=h-mag;return nh<0?nh+360:nh;}
+ if(h<=60)return h+(60-h)*f;
+ return h-(h-60)*f;
+}
+
+function generatePalette(hexInput,material,rimLock,useCorrection,trusted){
+ const hsv=hexToHsv(hexInput),h=hsv.h,s=hsv.s,v=hsv.v;
+ const[tS,tV]=TGT[material];
+ const dev=Math.max(Math.abs(s-tS),Math.abs(v-tV));
+ let cs=s,cv=v,note='correction off (default)';
+ if(useCorrection){
+  if(trusted&&dev<25){note='template validated · correction skipped';}
+  else if(dev<=12){note='already optimal · correction skipped';}
+  else{const k=0.65*(v/100);cs=Math.round(s+(tS-s)*k);cv=Math.round(v+(tV-v)*k);
+   if(material==='skin')cs=Math.min(100,cs+3);
+   note='adaptive lerp k='+k.toFixed(2);}
+ }
+ const baseHex=hsvToHex(h,cs,cv);
+ const tp=v5temp(h),{dir,mult}=shadowDir(h);
+ const pal={base:{hex:baseHex,name:'Base Color',label:'base'},material,temp:tp,note,originalHex:hexInput.toUpperCase()};
+ const SHn=SH[material];
+ // shadows: medium / deep / core
+ [['shadow_medium','Medium Shadow',0],['shadow_deep','Deep Shadow',1],['shadow_core','Core Shadow',2]].forEach(([key,name,i])=>{
+  const nh=((h+dir*SHn.mag[i]*mult)%360+360)%360;
+  pal[key]={hex:hsvToHex(nh,Math.min(100,cs+SHn.sS[i]),Math.round(cv*SHn.sV[i])),name,label:key};
+ });
+ // cast shadow: follows occluder hue, below deep
+ pal.cast_shadow={hex:hsvToHex(((h+dir*SHn.mag[1]*mult)%360+360)%360,Math.min(100,cs+10),Math.max(0,Math.round(cv*(SHn.sV[2]-0.08)))),name:'Cast Shadow',label:'cast_shadow'};
+ // ambient occlusion: locked violet hue (all materials)
+ pal.ao={hex:hsvToHex(255,Math.min(100,cs+18),Math.max(5,Math.round(cv*0.55))),name:'Ambient Occlusion',label:'ao'};
+ // highlight / specular
+ [['highlight','Highlight',0],['specular','Specular',1]].forEach(([key,name,i])=>{
+  const nh=hlHue(h,i,material);
+  pal[key]={hex:hsvToHex(nh,Math.max(0,cs-HIS[material][i]),Math.min(100,Math.round(cv+(100-cv)*HIF[material][i]+HIB[material][i]))),name,label:key};
+ });
+ if(material==='skin'){
+  pal.subsurface={hex:hsvToHex(((h-5)%360+360)%360,Math.min(100,cs+32),Math.max(5,Math.round(cv*0.95))),name:'Subsurface',label:'subsurface'};
+  pal.blush={hex:hsvToHex(((h-8)%360+360)%360,Math.min(100,cs+38),Math.max(5,Math.round(cv*0.94))),name:'Blush',label:'blush'};
+ }
+ if(material==='hair'){
+  pal.inner_shadow={hex:hsvToHex(((h-dir*10)%360+360)%360,Math.min(100,cs+20),Math.round(cv*0.58)),name:'Inner Shadow',label:'inner_shadow'};
+  pal.bounce={hex:hsvToHex(((h+45)%360+360)%360,Math.max(0,cs-12),Math.min(100,Math.round(cv*1.14))),name:'Bounce Light',label:'bounce'};
+  pal.strand_light={hex:hsvToHex(((h+dir*12)%360+360)%360,Math.max(0,cs-10),Math.min(100,Math.round(cv*1.20))),name:'Strand Light',label:'strand_light'};
+ }
+ if(material==='clothes'){
+  pal.fold_shadow={hex:hsvToHex(((h+dir*12)%360+360)%360,Math.min(100,cs+14),Math.round(cv*0.80)),name:'Fold Shadow',label:'fold_shadow'};
+  pal.bounce={hex:hsvToHex(((h+40)%360+360)%360,Math.max(0,cs-14),Math.min(100,Math.round(cv*1.12))),name:'Bounce Light',label:'bounce'};
+ }
+ if(material==='armor'){
+  pal.edge_highlight={hex:hsvToHex(h,Math.max(0,cs-25),Math.min(100,Math.round(cv*1.5)+5)),name:'Edge Highlight',label:'edge_highlight'};
+  pal.scratches={hex:hsvToHex(h,Math.max(0,cs-45),Math.min(100,Math.round(cv*1.65)+5)),name:'Scratches',label:'scratches'};
+  pal.reflection={hex:hsvToHex(200,62,Math.min(88,Math.max(72,Math.round(cv*0.92)))),name:'Reflection',label:'reflection'};
+ }
+ // rim + lineart
+ const rimHex=rimLock?'#05E5E8':hsvToHex(h+180,45,92);
+ pal.rim_light={hex:rimHex,name:'Rim Light',label:'rim_light'};
+ const warm=tp==='warm';
+ pal.lineart={hex:hsvToHex(warm?20:((h+12)%360+360)%360,Math.min(100,cs+50),Math.max(12,Math.round(cv*0.55))),name:'Lineart',label:'lineart'};
+ return pal;
+}
+function generateAccent(hex){
+ const h=hexToHsv(hex).h;
+ return[[h+180,'Complement'],[h+150,'Split −'],[h+210,'Split +']].map(a=>({hex:hsvToHex(a[0],45,92),name:a[1]}));
+}
+function generateHarmony(hex,type){
+ const o=hexToHsv(hex),h=o.h,s=o.s,v=o.v;const colors=[];
+ const push=(name,hh,ss,vv)=>colors.push({name,hex:hsvToHex(hh,ss,vv)});
+ if(type==='analogous'){push('-30°',h-30,s,v);push('-15°',h-15,s,v);push('Base',h,s,v);push('+15°',h+15,s,v);push('+30°',h+30,s,v);}
+ else if(type==='complementary'){push('Base',h,s,v);push('Comp',h+180,s,v);push('Split -',h+150,s,v);push('Split +',h+210,s,v);push('Comp desat',h+180,Math.max(0,s-30),v);}
+ else if(type==='triadic'){push('Base',h,s,v);push('+120°',h+120,s,v);push('+240°',h+240,s,v);push('Base light',h,Math.max(0,s-20),Math.min(100,v+15));push('+120 light',h+120,Math.max(0,s-20),Math.min(100,v+15));}
+ else{push('Dark',h,s,Math.max(15,v-40));push('Deep',h,s,Math.max(25,v-25));push('Base',h,s,v);push('Light',h,Math.max(0,s-15),Math.min(100,v+15));push('Bright',h,Math.max(0,s-25),Math.min(100,v+25));}
+ return colors;
+}
+
+const TEMPLATES=[
+ ['Skin',[['Peach','#FFD4B8'],['Fair','#FCE8DF'],['Porcelain','#F9ECEF'],['Tan','#E8B89A'],['Deep','#B0785A'],['Warm','#D4A088'],['Olive','#ADA078'],['Dark','#A07050']]],
+ ['Hair',[['Blue','#4488FF'],['Purple','#B866FF'],['Pink','#FF66B8'],['Silver','#C8D0E0'],['Red','#FF4466'],['Green','#44DD88'],['Orange','#FF8844'],['Black','#2A2A3A'],['Blonde','#FFE8A0'],['Brown','#8B6B4A'],['Cyan','#00E5FF'],['Rose','#D9577E'],['White','#F2F2F8']]],
+ ['Clothes',[['Red','#FF4466'],['Teal','#22CCAA'],['Gold','#E8C040'],['Navy','#304878'],['Crimson','#CC2244'],['Emerald','#22AA66'],['Royal','#4422CC'],['Coral','#FF7755'],['Lavender','#B088FF'],['Magenta','#CC22AA'],['Sage','#88AA66'],['Indigo','#3344AA'],['White','#F0F0F5'],['Black Warm','#2E2622'],['Black Cool','#28282E']]],
+ ['Armor',[['Steel','#8890A0'],['Gold','#ECC44C'],['Dark','#383848'],['White','#E8E8F0'],['Bronze','#B08040'],['Obsidian','#1A1A2A'],['Platinum','#C0C8D0'],['Copper','#C87040'],['Titanium','#A0A8B0'],['Onyx','#1E1E22'],['Chrome','#D0D8E0'],['Gunmetal','#4A5060']]]
+];
+const TIPS={
+ skin:[
+ "Gunakan Soft Airbrush di tepi shadow untuk transisi halus",
+ "Core shadow tetap sharp — gunakan G-Pen",
+ "Blush di pipi, ujung hidung, telinga, siku, lutut",
+ "Blush: layer Multiply/Overlay opacity 15-25%",
+ "Subsurface: Add Glow peach/oranye di telinga & ujung hidung",
+ "Specular di hidung & dagu, Add Glow 40%",
+ "Shadow kulit: merah-ungu (bukan coklat!), saturation naik",
+ "3 layer shadow: Medium → Deep → Core",
+ "Highlight kulit: putih kekuningan, jangan putih murni",
+ "Cast shadow: bayangan rambut/dagu ke kulit, Multiply 40-50%",
+ "AO: hue ungu dikunci ~255°, di celah-celah kecil",
+ "Lineart kulit selalu warm dark — jangan biru"
+ ],
+ hair:[
+ "Highlight mengikuti arah helai rambut (strand)",
+ "G-Pen untuk highlight strand tipis & sharp",
+ "2-3 highlight strand berbeda ukuran",
+ "Deep shadow di bawah rambut & belakang telinga",
+ "Inner shadow: gelap di balik gumpalan rambut tebal",
+ "Specular: putih tajam, bentuk v kecil",
+ "Base rambut harus vibrant & saturated",
+ "Shadow rambut: hue bergeser cool",
+ "Layer terpisah untuk tiap level shadow",
+ "Cast shadow rambut ke wajah, tepi agak soft",
+ "AO di celah antar helai yang menumpuk",
+ "Rim light paling tebal · lineart: biru-ungu utk low-sat"
+ ],
+ clothes:[
+ "Shadow mengikuti arah lipatan kain (fold direction)",
+ "Deep shadow di lipatan dalam & area tertutup",
+ "Highlight di bagian atas lipatan yang menonjol",
+ "Specular hanya untuk kain glossy/satin",
+ "Shadow pakai layer Multiply, bukan Normal",
+ "AO di celah lipatan & jahitan (Multiply 30%)",
+ "Fold shadow: 3 level mengikuti gravitasi",
+ "Cast shadow: lipatan atas ke lipatan bawah",
+ "Shadow baju lebih luas & soft dari kulit",
+ "Gunakan reference foto lipatan untuk anatomi",
+ "Rim light tipis di tepi kain berlawanan cahaya",
+ "Lineart lebih tebal dari kulit"
+ ],
+ armor:[
+ "Specular HARUS sharp & putih",
+ "Add Glow untuk semua highlight & specular",
+ "Reflection: biru cool semi-fixed (H200 S62)",
+ "Shadow armor: kontras TINGGI, jangan soft",
+ "Gradient linear untuk permukaan rata",
+ "Edge highlight: garis putih tipis di tepi plate",
+ "Core shadow: hampir hitam tapi tetap berwarna",
+ "Cast shadow antar plat yang saling menutupi",
+ "AO di sambungan plat & sekitar rivet",
+ "Scratches/dent di layer terpisah",
+ "Rim light tebal & glowing di tepi armor",
+ "Lineart tipis / bisa diganti edge highlight"
+ ]
+};
+const TT={
+skin:{
+ shadow_medium:['Medium Shadow','Lapisan volume pertama kulit — sumber kesan "merona".','Soft airbrush 30-40%, layer Multiply; hue bergeser ke merah-ungu.','Bawah dagu, sisi hidung, lekukan leher.'],
+ shadow_deep:['Deep Shadow','Kedalaman volume; saturation naik, warna tetap hidup.','Multiply 50-60%, edge medium.','Bawah dagu, celah hidung, bawah bibir.'],
+ shadow_core:['Core Shadow','Area benar-benar terhalang cahaya; paling gelap tapi tetap berwarna.','Multiply 70-80%, G-Pen, jangan diblur.','Celah bibir, lubang hidung, bawah kelopak mata.'],
+ cast_shadow:['Cast Shadow','Bayangan lemparan dari objek lain (rambut ke wajah, dagu ke leher).','Multiply 40-50%, tepi agak soft mengikuti jarak.','Wajah di bawah poni, leher di bawah dagu, tangan di bawah lengan.'],
+ ao:['Ambient Occlusion','Celah gelap kecil dari cahaya ambient terhalang; hue ungu dikunci ~255°.','Multiply 20-30%, soft airbrush.','Celah hidung, celah bibir, bawah alis, lekukan leher.'],
+ highlight:['Highlight','Sorotan cahaya langsung di kulit.','Putih kekuningan, bukan putih murni; Add Glow 20-30%.','Dahi, tulang pipi, hidung, dagu.'],
+ specular:['Specular','Pantulan terang kecil di permukaan kulit.','Putih murni, Add Glow 40-60%, maksimal 2-3 titik.','Ujung hidung, dagu, tulang pipi tinggi.'],
+ subsurface:['Subsurface','Cahaya menembus kulit — efek glowing khas Honkai.','Add Glow peach/oranye, opacity 15-25%.','Telinga, ujung hidung, bibir, ujung jari.'],
+ blush:['Blush','Kemerahan hidup wajib ada di style Honkai.','Multiply atau Overlay 15-25%.','Pipi, ujung hidung, telinga, siku, lutut.'],
+ rim_light:['Rim Light','Cahaya tepi — default mengikuti komplemen cahaya (desaturated).','Add Glow tipis 2-5px mengikuti kontur.','Tepi wajah yang berlawanan arah cahaya.'],
+ lineart:['Lineart','Warna outline kulit — selalu warm dark, jangan biru.','Warm low-sat: H≈20; ikuti hue jika high-sat. V proporsional.','Seluruh outline, 1.5-2px.']
+},
+hair:{
+ shadow_medium:['Medium Shadow','Bayangan pertama mengikuti arah helai rambut.','Multiply 40%, stroke searah helai.','Bagian bawah rambut, belakang telinga.'],
+ shadow_deep:['Deep Shadow','Kedalaman rambut tebal.','Multiply 60%, G-Pen searah helai.','Bagian paling dalam rambut.'],
+ shadow_core:['Core Shadow','Hampir hitam tapi tetap berwarna.','Multiply 80%, sharp edge.','Dalaman ponytail, bagian tertutup total.'],
+ cast_shadow:['Cast Shadow','Bayangan rambut yang jatuh ke wajah/leher.','Multiply 40-50%, tepi soft.','Dahi di bawah poni, pipi di sisi rambut tebal.'],
+ ao:['Ambient Occlusion','Celah antar helai yang saling menumpuk.','Multiply 20-30%, hue ungu dikunci ~255°.','Celah gumpalan rambut, dekat akar.'],
+ highlight:['Highlight','Sorotan mengikuti arah helai dari akar ke ujung.','Add Glow 50-70%, bentuk strip mengikuti helai.','Bagian atas kepala, area kena cahaya langsung.'],
+ specular:['Specular','Bentuk v kecil yang tajam — penanda rambut glossy.','Putih tajam, Add Glow 80-100%.','Puncak kepala, ujung ponytail.'],
+ inner_shadow:['Inner Shadow','Gelap di balik gumpalan rambut — memberi rasa tebal.','Multiply 30-40%, soft, lebih cool dari base.','Balik ponytail, balik gumpalan depan.'],
+ bounce:['Bounce Light','Pantulan warna sekitar (kulit, pakaian) ke rambut.','Add Glow lembut 20%.','Bawah rambut dekat bahu/pakaian berwarna.'],
+ strand_light:['Strand Light','Sorot helai individual tipis.','Brush 1-2px, Screen 40%.','Antara shadow dan highlight, 2-3 helai pilihan.'],
+ rim_light:['Rim Light','Paling tebal dari semua material.','Add Glow 3-8px mengikuti tepi rambut.','Seluruh tepi rambut berlawanan cahaya.'],
+ lineart:['Lineart','Outline tebal & bold.','Low-sat cool: biru-ungu; high-sat: ikuti hue.','Outline luar, garis antar gumpalan besar.']
+},
+clothes:{
+ shadow_medium:['Medium Shadow','Bayangan pertama kain; lebih luas & soft dari kulit.','Multiply 35%, soft airbrush.','Bagian bawah lipatan, sisi gelap kain.'],
+ shadow_deep:['Deep Shadow','Kedalaman lipatan dalam dan area tertutup.','Multiply 55%, edge medium.','Underfold, bawah lengan, bawah rok.'],
+ shadow_core:['Core Shadow','Celah paling gelap di pakaian.','Multiply 75%, sharp.','Samping badan, dalam kerah, celah kancing.'],
+ cast_shadow:['Cast Shadow','Bayangan lemparan lipatan/kain ke kain lain.','Multiply 40-50%, mengikuti jarak lipatan.','Lipatan atas menimpa lipatan bawah, kerah ke dada.'],
+ ao:['Ambient Occlusion','Celah kecil di lipatan dan jahitan.','Multiply 20-30%, hue ungu dikunci ~255°.','Celah lipatan dalam, sambungan jahit, celah kancing.'],
+ highlight:['Highlight','Sorotan di bagian atas lipatan yang menonjol.','Screen atau Add Glow 25%.','Puncak lipatan, bahu, dada.'],
+ specular:['Specular','Hanya untuk material glossy/satin.','Add Glow 60-80%, putih.','Kain satin/latex yang menonjol dan kena cahaya.'],
+ fold_shadow:['Fold Shadow','Anatomi lipatan: 3 level mengikuti gravitasi & gerakan.','Multiply 40%, gunakan reference foto lipatan.','Rok, lengan panjang, kerah, pita.'],
+ bounce:['Bounce Light','Pantulan dari kulit atau baju lain.','Screen 20%.','Dalam lengan, dekat aksesori berwarna.'],
+ rim_light:['Rim Light','Tipis — di antara kulit dan rambut.','Add Glow 2-4px.','Tepi lengan, rok, kerah, pita.'],
+ lineart:['Lineart','Lebih tebal dari kulit.','Warm low-sat: warm dark; cool low-sat: biru-ungu.','Outline luar, garis lipatan utama, aksesoris.']
+},
+armor:{
+ shadow_medium:['Medium Shadow','Bayangan metal pertama; kontras tinggi, jangan soft.','Multiply 50%, edge tajam atau gradient linear.','Sisi plate berlawanan cahaya.'],
+ shadow_deep:['Deep Shadow','Celah antar plate.','Multiply 70%, transisi cepat.','Di bawah plate yang menumpuk, dalam armor.'],
+ shadow_core:['Core Shadow','Hampir hitam tapi tetap berwarna (biru/ungu tua).','Multiply 100%, paling tajam.','Celah terdalam antar plate, dalam engraving.'],
+ cast_shadow:['Cast Shadow','Bayangan antar plat armor yang saling menutupi.','Multiply 50-60%, edge sesuai bentuk plat.','Plat atas menimpa plat bawah, bahu ke dada.'],
+ ao:['Ambient Occlusion','Celah mekanis kecil, sambungan plat.','Multiply 20-30%, hue ungu dikunci ~255°.','Celah sambungan, sekitar rivet/baut, engraving.'],
+ highlight:['Highlight','Permukaan rata yang kena cahaya.','Gradient linear atau Screen 50%.','Permukaan plate rata, bagian atas.'],
+ specular:['Specular','Penanda utama metal — wajib tajam & putih.','Add Glow 80-100%.','Puncak plate, edge menonjol, curvature tinggi.'],
+ edge_highlight:['Edge Highlight','Garis putih tipis di tepi plate — jual kesan metal.','1-2px putih murni, Add Glow 80%.','Seluruh tepi plat, tepi engraving, rivet.'],
+ scratches:['Scratches','Detail goresan pemakaian bertarung.','Brush 1px, 60-80%, layer terpisah.','Siku, bahu, dada, tepi plate.'],
+ reflection:['Reflection','Pantulan environment — biru cool semi-fixed (H200 S62).','Screen 30%, jangan berlebihan.','Permukaan rata yang "menghadap langit".'],
+ rim_light:['Rim Light','Tebal & glowing — paling mencolok setelah specular.','Add Glow 4-10px.','Seluruh tepi armor berlawanan cahaya.'],
+ lineart:['Lineart','Tipis; bisa diganti edge highlight saat full render.','V proporsional ×0.55 dari base.','Outline plate, garis detail mekanis.']
+}};
+
+// ============================================================
+// UI STATE & PICKER
+// ============================================================
+let curMat='skin',curHex='#FCE8DF',trusted=false,harmonyMode='analogous';
+let hist=JSON.parse(localStorage.getItem('airia_v6_history')||'[]');
+const $=id=>document.getElementById(id);
+const hexInput=$('hexInput'),toastEl=$('toast');
+const svCanvas=$('svCanvas'),hueCanvas=$('hueCanvas');
+let HSV={h:25,s:12,v:99};
+
+function showToast(m){toastEl.textContent=m;toastEl.classList.add('show');setTimeout(()=>toastEl.classList.remove('show'),2000);}
+function copyText(text){
+ if(navigator.clipboard&&navigator.clipboard.writeText&&window.isSecureContext){
+  navigator.clipboard.writeText(text).then(()=>showToast('Copied: '+text)).catch(()=>fallbackCopy(text));
+ }else fallbackCopy(text);
+}
+function fallbackCopy(text){
+ const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.focus();ta.select();
+ try{document.execCommand('copy');showToast('Copied: '+text);}catch(e){$('mobileHexDisplay').textContent=text;$('mobileHexDisplay').style.background=text+'20';$('mobileHexDisplay').style.borderColor=text;$('mobileCopyModal').classList.add('active');}
+ document.body.removeChild(ta);
+}
+
+function drawHueCanvas(){const ctx=hueCanvas.getContext('2d'),w=hueCanvas.width,h=hueCanvas.height;
+ for(let y=0;y<h;y++){ctx.fillStyle=hsvToHex((1-y/h)*360,100,100);ctx.fillRect(0,y,w,1);}}
+function drawSVCanvas(){const ctx=svCanvas.getContext('2d'),w=svCanvas.width,h=svCanvas.height;
+ const img=ctx.createImageData(w,h);
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+  const rgb=hsvToRgb(HSV.h,(x/w)*100,(1-y/h)*100),idx=(y*w+x)*4;
+  img.data[idx]=rgb.r;img.data[idx+1]=rgb.g;img.data[idx+2]=rgb.b;img.data[idx+3]=255;}
+ ctx.putImageData(img,0,0);}
+function hsvToRgb(h,s,v){s/=100;v/=100;const c=v*s,x=c*(1-Math.abs((h/60)%2-1)),m=v-c;let r,g,b;
+ if(h<60){r=c;g=x;b=0}else if(h<120){r=x;g=c;b=0}else if(h<180){r=0;g=c;b=x}
+ else if(h<240){r=0;g=x;b=c}else if(h<300){r=x;g=0;b=c}else{r=c;g=0;b=x}
+ return{r:Math.round((r+m)*255),g:Math.round((g+m)*255),b:Math.round((b+m)*255)};}
+
+function updatePickerUI(){
+ const svR=svCanvas.getBoundingClientRect();
+ $('svIndicator').style.left=(HSV.s/100*svR.width)+'px';
+ $('svIndicator').style.top=((1-HSV.v/100)*svR.height)+'px';
+ $('svIndicator').style.background=curHex;
+ const hueR=hueCanvas.getBoundingClientRect();
+ $('hueIndicator').style.top=((1-HSV.h/360)*hueR.height)+'px';
+ $('basePreviewBox').style.background=curHex;
+ $('basePreviewBox').style.boxShadow='0 0 20px '+curHex+'60';
+ $('hsvDisplay').textContent='H:'+Math.round(HSV.h)+' S:'+Math.round(HSV.s)+'% V:'+Math.round(HSV.v)+'%';}
+function setHex(hex,tr){HSV=hexToHsv(hex);curHex=hex.toUpperCase();trusted=!!tr;hexInput.value=curHex;drawSVCanvas();updatePickerUI();}
+
+function svFromEvent(e){const r=svCanvas.getBoundingClientRect();
+ HSV.s=Math.max(0,Math.min(100,(e.clientX-r.left)/r.width*100));
+ HSV.v=Math.max(0,Math.min(100,(1-(e.clientY-r.top)/r.height)*100));
+ trusted=false;curHex=hsvToHex(HSV.h,HSV.s,HSV.v);hexInput.value=curHex;updatePickerUI();renderAll(false);}
+function hueFromEvent(e){const r=hueCanvas.getBoundingClientRect();
+ HSV.h=Math.max(0,Math.min(360,(1-(e.clientY-r.top)/r.height)*360));
+ trusted=false;curHex=hsvToHex(HSV.h,HSV.s,HSV.v);hexInput.value=curHex;drawSVCanvas();updatePickerUI();renderAll(false);}
+function bindDrag(el,fn){
+ el.addEventListener('pointerdown',e=>{el.setPointerCapture(e.pointerId);fn(e);
+  const mv=ev=>fn(ev),up=()=>{el.removeEventListener('pointermove',mv);el.removeEventListener('pointerup',up);pushHistory();};
+  el.addEventListener('pointermove',mv);el.addEventListener('pointerup',up);});}
+bindDrag($('svBoxContainer'),e=>svFromEvent(e.touches?e.touches[0]:e));
+bindDrag($('hueSliderContainer'),e=>hueFromEvent(e.touches?e.touches[0]:e));
+
+// ============================================================
+// SPHERE PREVIEW (canvas, cel-shaded, all colors)
+// ============================================================
+function drawSphere(pal){
+ const cv=$('sphereCanvas'),ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+ const cx=W/2,cy=H/2,R=W/2-6;
+ ctx.clearRect(0,0,W,H);
+ const rg=(stops)=>{const g=ctx.createRadialGradient(cx,cy,0,cx,cy,R);stops.forEach(s=>g.addColorStop(s[0],s[1]));return g;};
+ // base fill + shadow bands (hard stops)
+ ctx.fillStyle=rg([[0,pal.base.hex],[0.60,pal.base.hex],[0.60,pal.shadow_medium.hex],[0.74,pal.shadow_medium.hex],[0.74,pal.shadow_deep.hex],[0.87,pal.shadow_deep.hex],[0.87,pal.shadow_core.hex],[1,pal.shadow_core.hex]]);
+ ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.fill();
+ // special #1 patch (lower-left)
+ const fxKeys=GROUPS.fx.filter(k=>pal[k]);
+ if(fxKeys[0]){const g=ctx.createRadialGradient(cx-R*0.42,cy+R*0.42,0,cx-R*0.42,cy+R*0.42,R*0.34);
+  const _b=hexToRgbBytes(pal[fxKeys[0]].hex);
+  g.addColorStop(0,pal[fxKeys[0]].hex);g.addColorStop(1,'rgba('+_b.r+','+_b.g+','+_b.b+',0)');
+  ctx.save();ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.clip();ctx.globalAlpha=0.85;ctx.fillStyle=g;
+  ctx.fillRect(0,0,W,H);ctx.restore();}
+ // highlight + specular (hard)
+ ctx.save();ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.clip();
+ let g2=ctx.createRadialGradient(cx-R*0.34,cy-R*0.32,0,cx-R*0.34,cy-R*0.32,R*0.62);
+ g2.addColorStop(0,pal.highlight.hex);g2.addColorStop(0.42,pal.highlight.hex);g2.addColorStop(0.42,'rgba(0,0,0,0)');
+ ctx.globalAlpha=0.9;ctx.fillStyle=g2;ctx.fillRect(0,0,W,H);
+ let g3=ctx.createRadialGradient(cx-R*0.36,cy-R*0.34,0,cx-R*0.36,cy-R*0.34,R*0.22);
+ g3.addColorStop(0,pal.specular.hex);g3.addColorStop(0.3,pal.specular.hex);g3.addColorStop(0.3,'rgba(0,0,0,0)');
+ ctx.fillStyle=g3;ctx.fillRect(0,0,W,H);
+ // special #2 ring
+ if(fxKeys[1]){ctx.globalAlpha=0.8;ctx.strokeStyle=pal[fxKeys[1]].hex;ctx.lineWidth=R*0.05;
+  ctx.beginPath();ctx.arc(cx,cy,R*0.94,0,7);ctx.stroke();}
+ ctx.globalAlpha=1;
+ // rim ring
+ ctx.strokeStyle=pal.rim_light.hex;ctx.lineWidth=R*0.09;
+ ctx.beginPath();ctx.arc(cx,cy,R*0.985,0,7);ctx.stroke();
+ ctx.restore();
+ // lineart border
+ ctx.strokeStyle=pal.lineart.hex;ctx.lineWidth=4;
+ ctx.beginPath();ctx.arc(cx,cy,R+1,0,7);ctx.stroke();
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function lastPalette(){return generatePalette(curHex,curMat,$('rimLockCheck').checked,$('corrCheck').checked,trusted);}
+
+function renderAll(push){
+ const pal=lastPalette();
+ $('baseHex').textContent=pal.base.hex;
+ $('baseMeta').textContent=pal.temp+' · '+pal.material+' material';
+ $('corrBadge').textContent=pal.note;
+ $('anOrig').style.background=curHex;
+ $('anFix').style.background=pal.base.hex;
+ drawSphere(pal);
+ const mk=(c)=>{const d=document.createElement('div');d.className='color-swatch';
+  d.dataset.label=c.label;
+  d.innerHTML='<div class="color-display" style="background:'+c.hex+'"></div><div class="color-info"><div class="color-name">'+c.name+'</div><div class="color-hex">'+c.hex+'</div></div>';
+  return d;};
+ const fill=(id,keys)=>{const g=$(id);g.innerHTML='';keys.forEach(k=>{if(pal[k])g.appendChild(mk(pal[k]));});};
+ fill('gridShadow',GROUPS.shadow);
+ fill('gridLight',GROUPS.light);
+ fill('gridFx',GROUPS.fx);
+ fill('gridOutline',GROUPS.outline);
+ // accent
+ const aw=$('accentWrap');
+ if($('accentCheck').checked){aw.style.display='block';const g=$('gridAccent');g.innerHTML='';
+  generateAccent(curHex).forEach(a=>{const d=document.createElement('div');d.className='color-swatch';
+   d.innerHTML='<div class="color-display" style="background:'+a.hex+'"></div><div class="color-info"><div class="color-name">'+a.name+'</div><div class="color-hex">'+a.hex+'</div></div>';
+   d.dataset.label='rim_light';g.appendChild(d);});}
+ else aw.style.display='none';
+ // tips
+ $('tipsMaterialName').textContent=pal.material.charAt(0).toUpperCase()+pal.material.slice(1);
+ $('tipsList').innerHTML=TIPS[pal.material].map((t,i)=>'<li style="animation-delay:'+(i*0.05)+'s"><span class="tip-number">'+(i+1)+'</span><span class="tip-text">'+t+'</span></li>').join('');
+ window._pal=pal;
+ renderHarmony();
+ if(push)pushHistory();
+}
+function pushHistory(){
+ hist.unshift({h:curHex,m:curMat,b:window._pal.base.hex});
+ hist=hist.slice(0,8);
+ localStorage.setItem('airia_v6_history',JSON.stringify(hist));
+ renderHistory();
+}
+function renderHistory(){
+ $('histRow').innerHTML=hist.map((x,i)=>'<div class="hist-chip" data-i="'+i+'" style="background:'+x.b+'" title="'+x.h+' · '+x.m+'"></div>').join('');
+}
+$('histRow').addEventListener('pointerdown',e=>{
+ const c=e.target.closest('.hist-chip');if(!c)return;
+ const item=hist[+c.dataset.i];if(!item)return;
+ setHex(item.h,true);curMat=item.m;
+ document.querySelectorAll('.material-option').forEach(o=>o.classList.toggle('selected',o.dataset.material===curMat));
+ renderAll(false);
+});
+
+// ============================================================
+// TEMPLATES & HARMONY
+// ============================================================
+function renderTemplates(){
+ $('templateBox').innerHTML=TEMPLATES.map(c=>'<div class="template-cat">'+c[0]+' · '+c[1].length+'</div><div class="template-grid">'+c[1].map(t=>'<div class="template-swatch" data-th="'+t[1]+'" data-tm="'+c[0].toLowerCase()+'"><div class="sw" style="background:'+t[1]+'"><span>'+t[0]+'</span></div></div>').join('')+'</div>').join('');
+}
+$('templateBox').addEventListener('pointerdown',e=>{
+ const c=e.target.closest('.template-swatch');if(!c)return;
+ setHex(c.dataset.th,true);curMat=c.dataset.tm;
+ document.querySelectorAll('.material-option').forEach(o=>o.classList.toggle('selected',o.dataset.material===curMat));
+ renderAll(true);
+});
+function renderHarmony(){
+ const g=$('harmonySwatches');g.innerHTML='';
+ generateHarmony(curHex,harmonyMode).forEach(c=>{
+  const d=document.createElement('div');d.style.background=c.hex;d.title=c.name+' '+c.hex;g.appendChild(d);});
+}
+$('harmonyHeader').addEventListener('click',()=>$('harmonySection').classList.toggle('open'));
+$('harmonyModes').addEventListener('click',e=>{
+ const b=e.target.closest('button');if(!b)return;
+ harmonyMode=b.dataset.harmony;
+ document.querySelectorAll('#harmonyModes button').forEach(x=>x.classList.toggle('on',x===b));
+ renderHarmony();
+});
+$('harmonySwatches').addEventListener('click',e=>{
+ const d=e.target.closest('div');if(!d||!d.style.background)return;
+ const rgb=d.style.backgroundColor.match(/\d+/g);
+ if(rgb){const hex='#'+rgb.slice(0,3).map(n=>(+n).toString(16).padStart(2,'0')).join('').toUpperCase();copyText(hex);}
+});
+$('harmonySwatches').addEventListener('dblclick',e=>{
+ const d=e.target.closest('div');if(!d||!d.style.background)return;
+ const rgb=d.style.backgroundColor.match(/\d+/g);
+ if(rgb){const hex='#'+rgb.slice(0,3).map(n=>(+n).toString(16).padStart(2,'0')).join('').toUpperCase();
+  setHex(hex,false);renderAll(true);}
+});
+
+// ============================================================
+// HEX INPUT / PASTE / EYEDROPPER
+// ============================================================
+hexInput.addEventListener('input',e=>{
+ const val=e.target.value;
+ if(/^#[0-9A-Fa-f]{6}$/.test(val)){setHex(val.toUpperCase(),false);renderAll(false);}
+});
+hexInput.addEventListener('keypress',e=>{if(e.key==='Enter'){setHex(hexInput.value,false);renderAll(true);}});
+$('pasteBtn').addEventListener('click',async()=>{
+ try{
+  if(navigator.clipboard&&navigator.clipboard.readText){
+   const text=await navigator.clipboard.readText();
+   if(text&&/^#?[0-9A-Fa-f]{6}$/.test(text.trim())){setHex(normalizeHex(text.trim()),false);renderAll(true);return;}
+  }
+ }catch(err){}
+ const v=prompt('Paste hex color code (e.g. #FF6B6B):');
+ if(v&&/^#?[0-9A-Fa-f]{6}$/.test(v.trim())){setHex(normalizeHex(v.trim()),false);renderAll(true);}
+});
+function normalizeHex(t){return('#'+t.replace('#','')).toUpperCase();}
+if('EyeDropper' in window){
+ $('eyedropperBtn').addEventListener('click',async()=>{
+  try{const r=await new EyeDropper().open();setHex(r.sRGBHex.toUpperCase(),false);renderAll(true);showToast('Picked: '+r.sRGBHex.toUpperCase());}
+  catch(e){showToast('EyeDropper cancelled');}
+ });
+}else{
+ $('eyedropperBtn').addEventListener('click',()=>{$('imagePickModal').classList.add('active');});
+}
+$('chooseImageBtn').addEventListener('click',()=>$('imagePickInput').click());
+$('imagePickInput').addEventListener('change',e=>{
+ const f=e.target.files[0];if(!f)return;
+ const img=new Image();
+ img.onload=()=>{const cv=$('imagePickCanvas'),maxW=520,sc=Math.min(1,maxW/img.width);
+  cv.width=Math.round(img.width*sc);cv.height=Math.round(img.height*sc);
+  cv.getContext('2d',{willReadFrequently:true}).drawImage(img,0,0,cv.width,cv.height);
+  cv.style.display='block';URL.revokeObjectURL(img.src);};
+ img.src=URL.createObjectURL(f);
+});
+$('imagePickCanvas').addEventListener('pointerdown',e=>{
+ const cv=$('imagePickCanvas'),r=cv.getBoundingClientRect();
+ const x=Math.floor((e.clientX-r.left)*(cv.width/r.width)),y=Math.floor((e.clientY-r.top)*(cv.height/r.height));
+ const d=cv.getContext('2d').getImageData(x,y,1,1).data;
+ const hex='#'+[d[0],d[1],d[2]].map(n=>n.toString(16).padStart(2,'0')).join('').toUpperCase();
+ setHex(hex,false);renderAll(true);showToast('Picked: '+hex);
+ $('imagePickModal').classList.remove('active');
+});
+$('closeImageModalBtn').addEventListener('click',()=>$('imagePickModal').classList.remove('active'));
+$('closeModalBtn').addEventListener('click',()=>$('mobileCopyModal').classList.remove('active'));
+
+// ============================================================
+// TOOLTIP BOTTOM SHEET (pointerdown — works on touch & mouse)
+// ============================================================
+function openTooltip(title,desc,tech,area,hex){
+ $('sheetTitle').textContent=title;
+ $('sheetDesc').textContent=desc;
+ $('sheetTech').innerHTML='<b>Teknik:</b> '+tech;
+ $('sheetArea').innerHTML='<b>Area:</b> '+area;
+ $('sheetHex').textContent=hex;
+ $('tooltipSheet').classList.add('active');
+}
+$('sheetClose').addEventListener('click',()=>$('tooltipSheet').classList.remove('active'));
+$('sheetCopy').addEventListener('click',()=>copyText($('sheetHex').textContent));
+$('tooltipSheet').addEventListener('pointerdown',e=>{if(e.target.id==='tooltipSheet')$('tooltipSheet').classList.remove('active');});
+function openBalloon(sw,title,desc,tech,area){
+ const b=$('balloon');
+ b.innerHTML='<div class="b-title">'+title+'</div><div class="b-desc">'+desc+'</div><div class="b-tech"><b>Teknik:</b> '+tech+'</div><div class="b-tech"><b>Area:</b> '+area+'</div>';
+ b.style.display='block';
+ const r=sw.getBoundingClientRect(),bw=b.offsetWidth,bh=b.offsetHeight;
+ let left=r.left+r.width/2-bw/2,top=r.top-bh-10;
+ if(left<8)left=8;if(left+bw>innerWidth-8)left=innerWidth-bw-8;
+ if(top<8)top=r.bottom+10;
+ b.style.left=left+'px';b.style.top=top+'px';
+}
+document.addEventListener('pointerdown',e=>{
+ const sw=e.target.closest('.color-swatch');
+ if(sw&&window._pal){
+  const hex=sw.querySelector('.color-hex').textContent;
+  copyText(hex);
+  const label=sw.dataset.label;
+  if(label==='rim_light'&&sw.closest('#gridAccent'))openBalloon(sw,'Accent Suggestion','Warna aksen titik fokus (mata, aksesoris, detail) — shading utama tidak berubah.','Opacity rendah di awal.','Titik fokus karakter.');
+  else{const t=TT[curMat]&&TT[curMat][label];if(t)openBalloon(sw,t[0]+' · '+hex,t[1],t[2],t[3]);}
+  return;
+ }
+ if(!e.target.closest('.balloon'))$('balloon').style.display='none';
+});
+// copy all per group
+document.querySelectorAll('.copyall').forEach(btn=>{
+ btn.addEventListener('click',()=>{
+  if(!window._pal)return;
+  const keys=GROUPS[btn.dataset.group].filter(k=>window._pal[k]);
+  const text=keys.map(k=>window._pal[k].name+': '+window._pal[k].hex).join(', ');
+  copyText(text);
+ });
+});
+
+// ============================================================
+// SAVED PALETTES (localStorage)
+// ============================================================
+function loadSaved(){return JSON.parse(localStorage.getItem('airia_v6_saved')||'[]');}
+function storeSaved(items){localStorage.setItem('airia_v6_saved',JSON.stringify(items));}
+function paletteToItem(pal,name){
+ const keys=[].concat(GROUPS.shadow,GROUPS.light,GROUPS.fx,GROUPS.outline).filter(k=>pal[k]);
+ return{name:name||('Palette — '+pal.material),baseHex:pal.base.hex,material:pal.material,temp:pal.temp,
+  checked:true,expanded:false,
+  derivatives:keys.map(k=>({hex:pal[k].hex,name:pal[k].name,label:pal[k].label}))};
+}
+function renderSaved(){
+ const items=loadSaved(),sec=$('savedSection');
+ if(!items.length){sec.style.display='none';return;}
+ sec.style.display='block';
+ $('savedList').innerHTML='';
+ items.forEach((it,i)=>{
+  const d=document.createElement('div');d.className='saved-item';
+  d.innerHTML='<div class="saved-item-header"><input type="checkbox" class="saved-item-checkbox" '+(it.checked?'checked':'')+' data-i="'+i+'">'
+   +'<div class="saved-item-color" style="background:'+it.baseHex+'"></div>'
+   +'<div class="saved-item-info-wrapper"><input type="text" class="saved-item-name-input" value="'+it.name.replace(/"/g,'&quot;')+'" data-i="'+i+'">'
+   +'<div class="saved-item-meta">'+it.baseHex+' | '+it.temp+'</div></div>'
+   +'<div class="saved-item-count">'+(it.derivatives.length+1)+' colors</div></div>'
+   +'<div class="saved-item-expand '+(it.expanded?'expanded':'')+'" data-i="'+i+'"><span class="expand-icon">&#9660;</span><span>'+(it.expanded?'hide':'show')+' all colors</span></div>'
+   +'<div class="saved-derivatives '+(it.expanded?'show':'')+'"><div class="saved-derivative-row"><div class="saved-derivative-color" style="background:'+it.baseHex+'"></div><div class="saved-derivative-name"><strong>Base Color</strong></div><div class="saved-derivative-hex">'+it.baseHex+'</div></div>'
+   +it.derivatives.map(x=>'<div class="saved-derivative-row"><div class="saved-derivative-color" style="background:'+x.hex+'"></div><div class="saved-derivative-name">'+x.name+'</div><div class="saved-derivative-hex">'+x.hex+'</div></div>').join('')
+   +'</div><button class="saved-item-delete" data-i="'+i+'">&#128465;</button>';
+  $('savedList').appendChild(d);
+ });
+ $('savedList').querySelectorAll('.saved-item-checkbox').forEach(cb=>cb.addEventListener('change',()=>{const its=loadSaved();its[+cb.dataset.i].checked=cb.checked;storeSaved(its);}));
+ $('savedList').querySelectorAll('.saved-item-name-input').forEach(inp=>inp.addEventListener('change',()=>{const its=loadSaved();its[+inp.dataset.i].name=inp.value;storeSaved(its);}));
+ $('savedList').querySelectorAll('.saved-item-expand').forEach(ex=>ex.addEventListener('click',()=>{const its=loadSaved();its[+ex.dataset.i].expanded=!its[+ex.dataset.i].expanded;storeSaved(its);renderSaved();}));
+ $('savedList').querySelectorAll('.saved-item-delete').forEach(del=>del.addEventListener('click',()=>{
+  const its=loadSaved();its.splice(+del.dataset.i,1);storeSaved(its);renderSaved();showToast('Palette removed');}));
+ $('savedList').querySelectorAll('.saved-derivative-hex').forEach(h=>h.addEventListener('click',()=>copyText(h.textContent.trim())));
+}
+function saveCurrent(){
+ const pal=window._pal||lastPalette();
+ const items=loadSaved();
+ items.push(paletteToItem(pal));
+ storeSaved(items);renderSaved();
+ showToast('Palette saved ('+(items[items.length-1].derivatives.length+1)+' colors)');
+}
+$('savePaletteBtn').addEventListener('click',saveCurrent);
+$('fabSave').addEventListener('click',saveCurrent);
+$('clearSavedBtn').addEventListener('click',()=>{
+ if(confirm('Delete ALL saved palettes?')){storeSaved([]);renderSaved();showToast('All palettes cleared');}
+});
+
+// ============================================================
+// EXPORT PNG (palette sheet)
+// ============================================================
+function exportPNG(items,filename){
+ if(!items.length){showToast('No saved palettes selected!');return;}
+ const sw=64,gap=8,pad=28,headH=64,titleH=24,boxH=44,hexH=12,nameLH=10;
+ function wrapName(name){
+  const words=String(name).split(' ');const lines=[];let cur='';
+  words.forEach(w=>{const t=cur?cur+' '+w:w;
+   if(t.length<=13)cur=t;else{if(cur)lines.push(cur);cur=w;}});
+  if(cur)lines.push(cur);
+  return lines.slice(0,2);
+ }
+ let height=pad+headH;
+ items.forEach(it=>{
+  const all=[{name:'Base Color'}].concat(it.derivatives);
+  const lines=Math.max.apply(null,all.map(c=>wrapName(c.name).length).concat([1]));
+  height+=titleH+6+boxH+hexH+lines*nameLH+18;
+ });
+ height+=pad-8;
+ const cols=Math.max.apply(null,items.map(it=>it.derivatives.length+1));
+ const width=cols*(sw+gap)+pad*2;
+ const cv=document.createElement('canvas');cv.width=width;cv.height=height;
+ const ctx=cv.getContext('2d');
+ ctx.fillStyle='#0a0a0f';ctx.fillRect(0,0,width,height);
+ ctx.fillStyle='#ff2a6d';ctx.font='bold 22px "Segoe UI",Arial,sans-serif';ctx.textAlign='center';
+ ctx.fillText('\u2726 AIRIA v6 \u2014 PALETTE SHEET \u2726',width/2,pad+24);
+ ctx.fillStyle='#a0a0b0';ctx.font='12px "Segoe UI",Arial,sans-serif';
+ ctx.fillText('Honkai cel shading style \u00b7 '+new Date().toLocaleDateString('en-GB'),width/2,pad+44);
+ let y=pad+headH;
+ items.forEach(it=>{
+  ctx.textAlign='left';ctx.fillStyle='#ff2a6d';ctx.font='bold 15px "Segoe UI",Arial,sans-serif';
+  ctx.fillText(it.name,pad,y+titleH-8);
+  ctx.fillStyle='#606070';ctx.font='10px "Segoe UI",Arial,sans-serif';
+  ctx.fillText(it.material+' | '+it.temp+' | '+(it.derivatives.length+1)+' colors',pad,y+titleH+5);
+  y+=titleH+6;
+  const all=[{hex:it.baseHex,name:'Base Color'}].concat(it.derivatives);
+  all.forEach((c,i)=>{
+   const x=pad+i*(sw+gap);
+   ctx.fillStyle=c.hex;ctx.fillRect(x,y,sw,boxH);
+   ctx.strokeStyle='#2a2a3a';ctx.lineWidth=2;ctx.strokeRect(x,y,sw,boxH);
+   ctx.fillStyle='#05d9e8';ctx.font='9px "Courier New",monospace';ctx.textAlign='center';
+   ctx.fillText(c.hex,x+sw/2,y+boxH+hexH-2);
+   ctx.fillStyle='#e0e0e0';ctx.font='8px "Segoe UI",Arial,sans-serif';
+   wrapName(c.name).forEach((ln,li)=>ctx.fillText(ln,x+sw/2,y+boxH+hexH+8+li*nameLH));
+  });
+  const lines=Math.max.apply(null,all.map(c=>wrapName(c.name).length).concat([1]));
+  y+=boxH+hexH+lines*nameLH+18;
+ });
+ ctx.fillStyle='#606070';ctx.font='10px "Segoe UI",Arial,sans-serif';ctx.textAlign='center';
+ ctx.fillText('AIRIA concept \u00b7 Honkai Impact 3rd Style',width/2,height-12);
+ cv.toBlob(blob=>{
+  if(!blob){showToast('Export failed!');return;}
+  const file=new File([blob],filename,{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+   navigator.share({files:[file],title:'AIRIA v6 Palette'}).then(()=>showToast('Dibagikan — pilih "Save Image"')).catch(()=>{});
+   return;
+  }
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.download=filename;a.href=url;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},2000);
+  showToast('Exported '+items.length+' palette(s)');
+ },'image/png');
+}
+$('exportSelectedBtn').addEventListener('click',()=>{
+ const sel=loadSaved().filter(x=>x.checked);
+ exportPNG(sel,'airia_v6_palette_'+new Date().toISOString().slice(0,10)+'.png');
+});
+$('exportAllBtn').addEventListener('click',()=>{
+ exportPNG(loadSaved(),'airia_v6_palette_all_'+new Date().toISOString().slice(0,10)+'.png');
+});
+
+// ============================================================
+// EXPORT .aco (Adobe Color Swatch for CSP)
+// ============================================================
+function hexToRgbBytes(hex){hex=hex.replace('#','');
+ return{r:parseInt(hex.substring(0,2),16),g:parseInt(hex.substring(2,4),16),b:parseInt(hex.substring(4,6),16)};}
+$('exportAcoBtn').addEventListener('click',()=>{
+ const items=loadSaved().filter(x=>x.checked);
+ if(!items.length){showToast('No saved palettes selected!');return;}
+ const colors=[];
+ items.forEach((it,idx)=>{
+  const pname=(it.name||'Palette').slice(0,22);
+  if(idx>0&&items[idx-1].baseHex!==it.baseHex)colors.push({hex:'#FF00FF',name:'--- '+pname+' ---'});
+  colors.push({hex:it.baseHex,name:pname+' - Base'});
+  it.derivatives.forEach(c=>colors.push({hex:c.hex,name:pname+' - '+c.name}));
+ });
+ let nameBytes=0;colors.forEach(c=>{nameBytes+=c.name.length*2;});
+ const buf=new ArrayBuffer((4+colors.length*10)+(4+colors.length*14+nameBytes));
+ const dv=new DataView(buf);let off=0;
+ const w16=v=>{dv.setUint16(off,v&0xFFFF);off+=2;};
+ const w32=v=>{dv.setUint32(off,v>>>0);off+=4;};
+ const wColor=hex=>{const rgb=hexToRgbBytes(hex);w16(0);w16(rgb.r*257);w16(rgb.g*257);w16(rgb.b*257);w16(0);};
+ w16(1);w16(colors.length);colors.forEach(c=>wColor(c.hex));
+ w16(2);w16(colors.length);
+ colors.forEach(c=>{wColor(c.hex);w32(c.name.length);for(let i=0;i<c.name.length;i++)w16(c.name.charCodeAt(i));});
+ const blob=new Blob([buf],{type:'application/octet-stream'});
+ const acoFile=new File([blob],'airia_v6_'+new Date().toISOString().slice(0,10)+'.aco',{type:'application/octet-stream'});
+ if(navigator.canShare&&navigator.canShare({files:[acoFile]})){
+  navigator.share({files:[acoFile],title:'AIRIA v6 ACO'}).then(()=>showToast('Dibagikan — pilih "Save to Files"')).catch(()=>{});
+  return;
+ }
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.download='airia_v6_'+new Date().toISOString().slice(0,10)+'.aco';a.href=url;
+ document.body.appendChild(a);a.click();
+ setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},2000);
+ showToast('Exported '+colors.length+' colors to .aco');
+});
+
+// ============================================================
+// MATERIAL / TOGGLES / SHORTCUTS / INIT
+// ============================================================
+document.querySelectorAll('.material-option').forEach(o=>{
+ o.addEventListener('click',()=>{
+  document.querySelectorAll('.material-option').forEach(x=>x.classList.remove('selected'));
+  o.classList.add('selected');curMat=o.dataset.material;trusted=false;renderAll(false);
+ });
+});
+['rimLockCheck','accentCheck','corrCheck'].forEach(id=>$(id).addEventListener('change',()=>renderAll(false)));
+document.addEventListener('keydown',e=>{
+ if(e.target.tagName==='INPUT'&&e.target.type==='text')return;
+ if(e.key==='Escape'){$('balloon').style.display='none';$('tooltipSheet').classList.remove('active');$('mobileCopyModal').classList.remove('active');$('imagePickModal').classList.remove('active');}
+ if(e.key==='s'||e.key==='S')saveCurrent();
+});
+
+drawHueCanvas();
+setHex('#FCE8DF',true);
+renderTemplates();
+renderSaved();
+renderHistory();
+renderAll(false);
+window.addEventListener('resize',updatePickerUI);
+</script>
+</body>
+</html>
